@@ -9,8 +9,7 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
-/developer_notes
-/.github
+/instructions
 
 # testing
 /coverage
