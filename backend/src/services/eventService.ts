@@ -1,33 +1,19 @@
 
-import { events, Event, memoryUtils, eventParticipants, participants } from '../model/memoryStore';
+import { prisma } from '../model/prismaClient';
 
 export const eventService = {
   async create({ name, description, date }: { name: string; description: string; date: string }) {
-    const now = new Date();
-    const event: Event = {
-      id: memoryUtils.uuid(),
-      name,
-      description,
-      date: new Date(date),
-      createdAt: now,
-      updatedAt: now,
-    };
-    events.push(event);
-    return event;
+    return await prisma.event.create({
+      data: { name, description, date: new Date(date) }
+    });
   },
   async list() {
-    return events;
+    return await prisma.event.findMany();
   },
   async details(eventId: string) {
-    const event = events.find(e => e.id === eventId);
-    if (!event) return null;
-    const participantsList = eventParticipants
-      .filter(ep => ep.eventId === eventId)
-      .map(ep => {
-        const participant = participants.find(p => p.id === ep.participantId);
-        return participant ? { ...participant } : null;
-      })
-      .filter(Boolean);
-    return { ...event, participants: participantsList };
+    return await prisma.event.findUnique({
+      where: { id: eventId },
+      include: { participants: true }
+    });
   },
 };
