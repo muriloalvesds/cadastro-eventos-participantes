@@ -5,6 +5,15 @@ import Link from 'next/link';
 
 const API_URL = 'http://localhost:3333';
 
+function formatDateBR(dateString: string) {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+}
+
 export default function EventDetailsPage({ eventId }: { eventId: string }) {
   const [event, setEvent] = useState<any>(null);
   const [participants, setParticipants] = useState<any[]>([]);
@@ -24,7 +33,7 @@ export default function EventDetailsPage({ eventId }: { eventId: string }) {
           <div className="mb-4 text-[#1D1D1B]">
             <div><b>Nome:</b> {event.name}</div>
             <div><b>Descrição:</b> {event.description}</div>
-            <div><b>Data:</b> {event.date}</div>
+            <div><b>Data:</b> {formatDateBR(event.date)}</div>
           </div>
         )}
         <Link href={`/events/${eventId}/subscribe`} className="bg-[#EEE416] text-[#1D1D1B] px-4 py-2 rounded mb-4 inline-block font-semibold shadow hover:bg-[#e6d900] transition">Inscrever Participante</Link>
