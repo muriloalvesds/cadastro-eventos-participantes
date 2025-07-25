@@ -1,33 +1,22 @@
 
 import { events, participants, eventParticipants, EventParticipant, memoryUtils } from '../model/memoryStore';
+import { prisma } from '../model/prismaClient';
 
 export const subscriptionService = {
   async subscribe(eventId: string, participantId: string) {
-    const event = events.find(e => e.id === eventId);
-    const participant = participants.find(p => p.id === participantId);
+    const event = await prisma.event.findUnique({ where: { id: eventId } });
+    const participant = await prisma.participant.findUnique({ where: { id: participantId } });
     if (!event || !participant) return null;
-    const exists = eventParticipants.find(
-      ep => ep.eventId === eventId && ep.participantId === participantId
-    );
-    if (exists) return 'already';
-    const ep: EventParticipant = {
-      id: memoryUtils.uuid(),
-      eventId,
-      participantId,
-      createdAt: new Date(),
-    };
-    eventParticipants.push(ep);
+    const already = await prisma.eventParticipant.findFirst({ where: { eventId, participantId } });
+    if (already) return 'already';
+    await prisma.eventParticipant.create({ data: { eventId, participantId } });
     return true;
   },
   async list(eventId: string) {
-    const event = events.find(e => e.id === eventId);
+    const event = await prisma.event.findUnique({ where: { id: eventId } });
     if (!event) return null;
-    return eventParticipants
-      .filter(ep => ep.eventId === eventId)
-      .map(ep => {
-        const participant = participants.find(p => p.id === ep.participantId);
-        return participant ? { ...participant } : null;
-      })
-      .filter(Boolean);
+    const eventParticipants = await prisma.eventParticipant.findMany({ where: { eventId } });
+    const participantIds = eventParticipants.map(ep => ep.participantId);
+    return await prisma.participant.findMany({ where: { id: { in: participantIds } } });
   },
 };
